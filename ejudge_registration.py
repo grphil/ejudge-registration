@@ -11,33 +11,36 @@ class EjudgeDbSession:
     def gen_password():
         return ''.join(random.choice(string.ascii_lowercase + string.ascii_uppercase + string.digits) for _ in range(10))
 
-    def create_login(self, login, int_login, retry_count=0):
+    def create_login(self, login, int_login):
+        cursor = self.connection.cursor()
+        cursor.execute(f"SELECT login FROM logins WHERE login LIKE '{login}%'")
+        same_logins = {i[0] for i in cursor.fetchall()}
         if int_login:
-            cursor = self.connection.cursor()
-            cursor.execute("SELECT COUNT(*) FROM logins")
-            total_users = cursor.fetchall()[0][0] + retry_count
-            return "{}-{}".format(login, total_users)
+            login_num = 1
+            while f"{login}-{login_num}" in same_logins:
+                login_num += 1
+            return f"{login}-{login_num}"
         else:
-            if retry_count == 0:
+            if login not in same_logins:
                 return login
-            else:
-                return login + str(retry_count)
+            login_num = 1
+            while f"{login}{login_num}" in same_logins:
+                login_num += 1
+            return f"{login}{login_num}"
 
     def create_user(self, required_login, int_login=False):
         cursor = self.connection.cursor()
         cursor.execute("SELECT COUNT(*) FROM logins")
         login = self.create_login(required_login, int_login)
         password = self.gen_password()
-        retry_count = 0
         while True:
-            retry_count += 1
             try:
                 cursor.execute("INSERT INTO logins (login, pwdmethod, password) VALUES ('{}', 0, '{}')".format(
                     login,
                     password
                 ))
                 self.connection.commit()
-                if 1 == cursor.execute("SELECT * FROM logins WHERE login='{}' AND password='{}'".format(
+                if 1 == cursor.execute("SELECT user_id FROM logins WHERE login='{}' AND password='{}'".format(
                     login,
                     password
                 )):
@@ -47,7 +50,7 @@ class EjudgeDbSession:
                         "user_id": cursor.fetchall()[0][0]
                     }
             except:
-                login = self.create_login(required_login, int_login, retry_count)
+                login = self.create_login(required_login, int_login)
 
     def register_for_contest(self, user_id, contest_id, name=""):
         cursor = self.connection.cursor()
