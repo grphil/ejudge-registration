@@ -1,36 +1,20 @@
 import pymysql
-import string
-import random
+
+from .common import gen_random_password, generate_login
 
 
 class EjudgeDbSession:
     def __init__(self, db_login, db_password, db_name):
         self.connection = pymysql.connect("localhost", db_login, db_password, db_name)
 
-    @staticmethod
-    def gen_password():
-        return ''.join(random.choice(string.ascii_lowercase + string.ascii_uppercase + string.digits) for _ in range(10))
-
     def create_login(self, login, int_login):
         cursor = self.connection.cursor()
         cursor.execute(f"SELECT login FROM logins WHERE login LIKE '{login}%'")
         same_logins = {i[0] for i in cursor.fetchall()}
-        if int_login:
-            login_num = 1
-            while f"{login}-{login_num}" in same_logins:
-                login_num += 1
-            return f"{login}-{login_num}"
-        else:
-            if login not in same_logins:
-                return login
-            login_num = 1
-            while f"{login}{login_num}" in same_logins:
-                login_num += 1
-            return f"{login}{login_num}"
+        return generate_login(login, int_login, same_logins)
 
     def create_user(self, required_login, int_login=False):
         cursor = self.connection.cursor()
-        cursor.execute("SELECT COUNT(*) FROM logins")
         login = self.create_login(required_login, int_login)
         password = self.gen_password()
         while True:
