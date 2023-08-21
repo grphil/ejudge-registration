@@ -22,7 +22,7 @@ def generate_login(login, int_login, same_logins):
         return f"{login}{login_num}"
 
 
-MAX_ROWS = 10000
+MAX_ROWS = 20000
 
 SHOW_USERS_API = '?SID={SID}&action=305&_search=true&rows={max_rows}&searchField=login&searchString={search_string}&searchOper={search_oper}'
 
