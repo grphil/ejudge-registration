@@ -36,7 +36,7 @@ class EjudgeDbSession:
     def create_user(self, required_login, int_login=False):
         cursor = self.connection.cursor()
         login = self.create_login(required_login, int_login)
-        password = self.gen_password()
+        password = gen_random_password()
         while True:
             try:
                 cursor.execute("INSERT INTO logins (login, pwdmethod, password) VALUES ('{}', 0, '{}')".format(
