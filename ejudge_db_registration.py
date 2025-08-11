@@ -25,7 +25,7 @@ def generate_login(login, int_login, same_logins):
 
 class EjudgeDbSession:
     def __init__(self, db_login, db_password, db_name):
-        self.connection = pymysql.connect("localhost", db_login, db_password, db_name)
+        self.connection = pymysql.connect(host="localhost", user=db_login, password=db_password, database=db_name)
 
     def create_login(self, login, int_login):
         cursor = self.connection.cursor()
